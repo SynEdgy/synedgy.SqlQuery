@@ -22,7 +22,7 @@ function Get-SqlDbTypeFromType
             $Type = $Value.GetType()
             Write-Verbose -Message ('Getting the SQL DB type by Value: {0}' -f $Type.ToString())
         }
-        elseif ($PSCmdlet.ParameterSetName -eq 'ByType' -and $null -eq $Type)
+        elseif ($null -eq $Value)
         {
             [SqlDbType]::dbNull
             Write-Verbose -Message ('SQL DB type is DBNull.')
@@ -34,6 +34,11 @@ function Get-SqlDbTypeFromType
 
         [SqlDbType] $dbType = switch ($Type)
         {
+            [SqlDbType]
+            {
+                $_
+            }
+
             [System.Boolean]
             {
                 [SqlDbType]::Bit

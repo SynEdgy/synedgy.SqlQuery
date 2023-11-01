@@ -7,7 +7,7 @@ function Get-SqlQueryConnection
         [Parameter(Mandatory = $true, ParameterSetName = 'ByConnectionString')]
         [string]
         [ValidateNotNullOrEmpty()]
-        $ConnectionString = $null
+        $ConnectionString
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'ByConnectionString' -and -not [string]::IsNullOrEmpty($ConnectionString))
