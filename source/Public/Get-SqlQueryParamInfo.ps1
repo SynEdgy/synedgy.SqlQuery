@@ -1,5 +1,19 @@
 function Get-SqlQueryParamInfo
 {
+    <#
+    .SYNOPSIS
+    Retrieves parameter mapping information for a SQL query parameter.
+
+    .DESCRIPTION
+    Looks up the mapping information for a given parameter name from the configuration. Returns a hashtable with parameter mapping details if found, otherwise returns $null.
+
+    .PARAMETER ParameterName
+    The name of the parameter to retrieve mapping information for. This parameter is mandatory.
+
+    .EXAMPLE
+    PS> Get-SqlQueryParamInfo -ParameterName "UserId"
+    Returns the mapping information for the parameter 'UserId'.
+    #>
     [CmdletBinding()]
     [OutputType([hashtable])]
     param

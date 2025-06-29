@@ -1,6 +1,24 @@
 function Get-SqlQueryConvertedDataSet
 {
+    <#
+    .SYNOPSIS
+    Converts a DataSet to various output formats.
+
+    .DESCRIPTION
+    Converts a [System.Data.DataSet] object to a specified format such as hashtable, xml, json, pscustomobject, dataset, none, or table. Useful for transforming SQL query results for further processing or output.
+
+    .PARAMETER ConvertTo
+    The format to convert the DataSet to. Valid values are: hashtable, xml, json, pscustomobject, dataset, none, table. Default is pscustomobject.
+
+    .PARAMETER DataSet
+    The DataSet object to convert.
+
+    .EXAMPLE
+    PS> Get-SqlQueryConvertedDataSet -ConvertTo json -DataSet $ds
+    Returns the DataSet as a JSON string.
+    #>
     [CmdletBinding()]
+    [OutputType([System.Data.DataSet], [System.Data.DataTable], [string], [hashtable[]], [PSCustomObject[]], [object])]
     param
     (
         [Parameter()]
