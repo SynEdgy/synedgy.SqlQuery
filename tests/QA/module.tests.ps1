@@ -23,6 +23,11 @@ BeforeDiscovery {
 BeforeAll {
     # Convert-Path required for PS7 or Join-Path fails
     $projectPath = "$($PSScriptRoot)\..\.." | Convert-Path
+    # Get git-related project path. This is relevant for modules that will not be deployed in the root folder of Git.
+    $gitTopLevelPath = (&git rev-parse --show-toplevel)
+    $gitRelatedModulePath = (($projectPath -replace [regex]::Escape([IO.Path]::DirectorySeparatorChar), '/') -replace $gitTopLevelPath, '')
+    if (-not [string]::IsNullOrEmpty($gitRelatedModulePath)) { $gitRelatedModulePath = $gitRelatedModulePath.Trim('/')  + '/' }
+    $escapedGitRelatedModulePath = [regex]::Escape($gitRelatedModulePath)
 
     <#
         If the QA tests are run outside of the build script (e.g with Invoke-Pester)
@@ -55,6 +60,35 @@ BeforeAll {
 }
 
 Describe 'Changelog Management' -Tag 'Changelog' {
+    It 'Changelog has been updated' -Skip:(
+        -not ([bool](Get-Command git -ErrorAction SilentlyContinue) -and
+            [bool](&(Get-Process -Id $PID).Path -NoProfile -Command 'git rev-parse --is-inside-work-tree 2>$null'))
+    ) {
+        <#
+            Get the list of changed files compared with branch main to verify
+            that required files are changed.
+        #>
+
+        # Only run if there is a remote called origin
+        if (((git remote) -match 'origin'))
+        {
+            $headCommit = &git rev-parse HEAD
+            $defaultBranchCommit = &git rev-parse origin/main
+            $filesChanged = (&git @('diff', "$defaultBranchCommit...$headCommit", '--name-only') |
+                Where-Object { $_ -match "^$escapedGitRelatedModulePath" }) -replace "^$escapedGitRelatedModulePath", ""
+        }
+
+        $filesStagedAndUnstaged = (&git @('diff', 'HEAD', '--name-only') 2>&1 |
+            Where-Object { $_ -match "^$escapedGitRelatedModulePath" }) -replace "^$escapedGitRelatedModulePath", ""
+
+        $filesChanged += $filesStagedAndUnstaged
+
+        # Only check if there are any changed files.
+        if ($filesChanged)
+        {
+            $filesChanged | Should -Contain 'CHANGELOG.md' -Because 'the CHANGELOG.md must be updated with at least one entry in the Unreleased section for each PR'
+        }
+    }
 
     It 'Changelog format compliant with keepachangelog format' -Skip:(![bool](Get-Command git -EA SilentlyContinue)) {
         { Get-ChangelogData -Path (Join-Path $ProjectPath 'CHANGELOG.md') -ErrorAction Stop } | Should -Not -Throw
