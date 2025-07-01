@@ -1,6 +1,7 @@
 BeforeAll {
-    # Dot-source the function directly for testing
-    . "$PSScriptRoot\..\source\Public\Get-SqlQueryConvertedDataSet.ps1"
+    # Import the compiled module for testing to ensure code coverage
+    $ModulePath = "$PSScriptRoot\..\..\..\output\module\synedgy.sqlQuery"
+    Import-Module $ModulePath -Force
 
     # Create a sample DataSet for testing
     function New-TestDataSet

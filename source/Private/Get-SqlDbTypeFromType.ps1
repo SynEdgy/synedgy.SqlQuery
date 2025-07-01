@@ -1,7 +1,6 @@
 using namespace System.Data
 
-function Get-SqlDbTypeFromType
-{
+function Get-SqlDbTypeFromType {
     <#
     .SYNOPSIS
     Maps a .NET type or value to a corresponding SQL DbType.
@@ -31,150 +30,116 @@ function Get-SqlDbTypeFromType
         [Type]
         $Type,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  ParameterSetName = 'ByValue')]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'ByValue')]
         [object]
         $Value
-    )    process
-    {
-        if ($PSCmdlet.ParameterSetName -eq 'ByValue')
-        {
-            if ($null -eq $Value)
-            {
+    )    process {
+        if ($PSCmdlet.ParameterSetName -eq 'ByValue') {
+            if ($null -eq $Value) {
                 Write-Verbose -Message ('SQL DB type is DBNull.')
                 return [SqlDbType]::DbNull
             }
 
             # If a SqlDbType is passed directly, return it unchanged
-            if ($Value -is [SqlDbType])
-            {
+            if ($Value -is [SqlDbType]) {
                 Write-Verbose -Message ('SQL DB type is directly provided as {0}.' -f $Value.ToString())
                 return $Value
             }
 
             $Type = $Value.GetType()
             Write-Verbose -Message ('Getting the SQL DB type by Value: {0}' -f $Type.ToString())
-        }        else
-        {
+        } else {
             Write-Verbose -Message ('Getting the SQL DB type by Type: {0}' -f $Type.ToString())
         }
 
         # Use equality comparison for reliable type matching
-        [SqlDbType] $dbType = switch ($Type)
-        {
-            # Handle SqlDbType values
-            { $_ -is [SqlDbType] }
-            {
-                # If we get a SqlDbType value directly, pass it through
-                return $_
-            }
+        [SqlDbType] $dbType = switch ($Type) {
 
-            { $_.Equals([System.Boolean]) }
-            {
+            { $_.Equals([System.Boolean]) } {
                 [SqlDbType]::Bit
             }
 
-            { $_.Equals([System.Byte]) }
-            {
+            { $_.Equals([System.Byte]) } {
                 [SqlDbType]::TinyInt
             }
 
-            { $_.Equals([System.Byte[]]) }
-            {
+            { $_.Equals([System.Byte[]]) } {
                 [SqlDbType]::Binary
             }
 
-            { $_.Equals([System.Char]) }
-            {
+            { $_.Equals([System.Char]) } {
                 [SqlDbType]::Char
             }
 
-            { $_.Equals([System.Char[]]) }
-            {
+            { $_.Equals([System.Char[]]) } {
                 [SqlDbType]::VarChar
             }
 
-            { $_.Equals([System.DateTime]) }
-            {
+            { $_.Equals([System.DateTime]) } {
                 [SqlDbType]::DateTime
             }
 
-            { $_.Equals([System.DateTimeOffset]) }
-            {
+            { $_.Equals([System.DateTimeOffset]) } {
                 [SqlDbType]::DateTimeOffset
             }
 
-            { $_.Equals([System.Decimal]) }
-            {
+            { $_.Equals([System.Decimal]) } {
                 [SqlDbType]::Decimal
             }
 
-            { $_.Equals([System.Double]) }
-            {
+            { $_.Equals([System.Double]) } {
                 [SqlDbType]::Float
             }
 
-            { $_.Equals([System.Guid]) }
-            {
+            { $_.Equals([System.Guid]) } {
                 [SqlDbType]::UniqueIdentifier
             }
 
-            { $_.Equals([System.Int16]) }
-            {
+            { $_.Equals([System.Int16]) } {
                 [SqlDbType]::SmallInt
             }
 
-            { $_.Equals([System.Int32]) }
-            {
+            { $_.Equals([System.Int32]) } {
                 [SqlDbType]::Int
             }
 
-            { $_.Equals([System.Int64]) }
-            {
+            { $_.Equals([System.Int64]) } {
                 [SqlDbType]::BigInt
             }
 
-            { $_.Equals([System.SByte]) }
-            {
+            { $_.Equals([System.SByte]) } {
                 [SqlDbType]::SmallInt
             }
 
-            { $_.Equals([System.Single]) }
-            {
+            { $_.Equals([System.Single]) } {
                 [SqlDbType]::Real
             }
 
-            { $_.Equals([System.String]) }
-            {
+            { $_.Equals([System.String]) } {
                 [SqlDbType]::NVarChar
             }
 
-            { $_.Equals([System.TimeSpan]) }
-            {
+            { $_.Equals([System.TimeSpan]) } {
                 [SqlDbType]::Time
             }
 
-            { $_.Equals([System.UInt16]) }
-            {
+            { $_.Equals([System.UInt16]) } {
                 [SqlDbType]::Int
             }
 
-            { $_.Equals([System.UInt32]) }
-            {
+            { $_.Equals([System.UInt32]) } {
                 [SqlDbType]::BigInt
             }
 
-            { $_.Equals([System.UInt64]) }
-            {
+            { $_.Equals([System.UInt64]) } {
                 [SqlDbType]::BigInt
             }
 
-            { $_.Equals([System.Xml.XmlDocument]) }
-            {
+            { $_.Equals([System.Xml.XmlDocument]) } {
                 [SqlDbType]::Xml
             }
 
-            default
-            {
+            default {
                 [SqlDbType]::Variant
             }
         }

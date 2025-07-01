@@ -1,43 +1,43 @@
 Context 'When ParameterConfiguration is empty' {
     It 'Should not change ParameterMapping if input is empty' {
-        $script:Configuration = @{}
+        Initialize-ModuleConfiguration @{}
         $empty = @{}
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $empty
-        $script:Configuration['ParameterMapping'].Count | Should -Be 0
+        (Get-ModuleConfiguration)['ParameterMapping'].Count | Should -Be 0
     }
 }
 
 Context 'When ParameterConfiguration is not a hashtable of hashtables' {
     It 'Should not throw but not add invalid structure' {
-        $script:Configuration = @{}
+        Initialize-ModuleConfiguration @{}
         $invalid = @{ 'F' = 'notAHash' }
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $invalid
-        $script:Configuration['ParameterMapping']['F'] | Should -Be 'notAHash'
+        (Get-ModuleConfiguration)['ParameterMapping']['F'] | Should -Be 'notAHash'
     }
 }
 
 Context 'When keys differ only by case' {
     It 'Should treat keys as case-insensitive' {
-        $script:Configuration = @{}
+        Initialize-ModuleConfiguration @{}
         $testMapping = @{ 'G' = @{ SqlDbType = 'Int' } }
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $testMapping
         $testMapping2 = @{ 'g' = @{ SqlDbType = 'BigInt' } }
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $testMapping2
-        $script:Configuration['ParameterMapping'].Count | Should -Be 1
-        $script:Configuration['ParameterMapping']['G'].SqlDbType | Should -Be 'Int'
+        (Get-ModuleConfiguration)['ParameterMapping'].Count | Should -Be 1
+        (Get-ModuleConfiguration)['ParameterMapping']['G'].SqlDbType | Should -Be 'Int'
     }
 }
 
 Context 'When called multiple times' {
     It 'Should accumulate all unique keys and not overwrite existing' {
-        $script:Configuration = @{}
+        Initialize-ModuleConfiguration @{}
         $first = @{ 'H' = @{ SqlDbType = 'Int' } }
         $second = @{ 'I' = @{ SqlDbType = 'BigInt' } }
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $first
         Set-SqlQueryParameterConfiguration -ParameterConfiguration $second
-        $script:Configuration['ParameterMapping'].Count | Should -Be 2
-        $script:Configuration['ParameterMapping']['H'].SqlDbType | Should -Be 'Int'
-        $script:Configuration['ParameterMapping']['I'].SqlDbType | Should -Be 'BigInt'
+        (Get-ModuleConfiguration)['ParameterMapping'].Count | Should -Be 2
+        (Get-ModuleConfiguration)['ParameterMapping']['H'].SqlDbType | Should -Be 'Int'
+        (Get-ModuleConfiguration)['ParameterMapping']['I'].SqlDbType | Should -Be 'BigInt'
     }
 }
 
@@ -51,8 +51,23 @@ Context 'When called multiple times' {
 #     }
 # }
 BeforeAll {
-    # Dot-source the function directly for testing
-    . "$PSScriptRoot\..\source\Public\Set-SqlQueryParameterConfiguration.ps1"
+    # Import the compiled module for testing to ensure code coverage
+    $ModulePath = "$PSScriptRoot\..\..\..\output\module\synedgy.sqlQuery"
+    Import-Module $ModulePath -Force
+
+    # Helper function to initialize module configuration
+    function Initialize-ModuleConfiguration {
+        param($InitialConfig = @{})
+        & (Get-Module synedgy.sqlQuery) {
+            param($Config)
+            $script:Configuration = $Config
+        } $InitialConfig
+    }
+
+    # Helper function to get module configuration
+    function Get-ModuleConfiguration {
+        & (Get-Module synedgy.sqlQuery) { $script:Configuration }
+    }
 }
 
 Describe 'Set-SqlQueryParameterConfiguration' {
@@ -62,41 +77,41 @@ Describe 'Set-SqlQueryParameterConfiguration' {
                 'UserId'   = @{ SqlDbType = 'Int'; Direction = 'Input' }
                 'UserName' = @{ SqlDbType = 'NVarChar'; Size = 50; Direction = 'Input' }
             }
-            $script:Configuration = @{}
+            Initialize-ModuleConfiguration @{}
             Set-SqlQueryParameterConfiguration -ParameterConfiguration $testMapping
-            $script:Configuration['ParameterMapping'].Count | Should -Be 2
-            $script:Configuration['ParameterMapping']['UserId'].SqlDbType | Should -Be 'Int'
-            $script:Configuration['ParameterMapping']['UserName'].Size | Should -Be 50
+            (Get-ModuleConfiguration)['ParameterMapping'].Count | Should -Be 2
+            (Get-ModuleConfiguration)['ParameterMapping']['UserId'].SqlDbType | Should -Be 'Int'
+            (Get-ModuleConfiguration)['ParameterMapping']['UserName'].Size | Should -Be 50
         }
     }
 
     Context 'When $script:Configuration is not a hashtable' {
         It 'Should initialize $script:Configuration as a hashtable and set mapping' {
             $testMapping = @{ 'A' = @{ SqlDbType = 'Int' } }
-            $script:Configuration = $null
+            Initialize-ModuleConfiguration $null
             Set-SqlQueryParameterConfiguration -ParameterConfiguration $testMapping
-            $script:Configuration['ParameterMapping']['A'].SqlDbType | Should -Be 'Int'
+            (Get-ModuleConfiguration)['ParameterMapping']['A'].SqlDbType | Should -Be 'Int'
         }
     }
 
     Context 'When ShouldProcess is used' {
         It 'Should call ShouldProcess and set mapping if confirmed' {
             $testMapping = @{ 'B' = @{ SqlDbType = 'BigInt' } }
-            $script:Configuration = @{}
+            Initialize-ModuleConfiguration @{}
             Set-SqlQueryParameterConfiguration -ParameterConfiguration $testMapping -Confirm:$false
-            $script:Configuration['ParameterMapping']['B'].SqlDbType | Should -Be 'BigInt'
+            (Get-ModuleConfiguration)['ParameterMapping']['B'].SqlDbType | Should -Be 'BigInt'
         }
     }
 
     Context 'When ParameterMapping already exists' {
         It 'Should not overwrite existing mapping if key exists, but allow new keys' {
             $existing = @{ 'C' = @{ SqlDbType = 'Char' } }
-            $script:Configuration = @{ 'ParameterMapping' = $existing }
+            Initialize-ModuleConfiguration @{ 'ParameterMapping' = $existing }
             $newMapping = @{ 'D' = @{ SqlDbType = 'Date' } }
             Set-SqlQueryParameterConfiguration -ParameterConfiguration $newMapping
-            $script:Configuration['ParameterMapping']['C'].SqlDbType | Should -Be 'Char'
-            $script:Configuration['ParameterMapping'].ContainsKey('D') | Should -BeTrue
-            $script:Configuration['ParameterMapping']['D'].SqlDbType | Should -Be 'Date'
+            (Get-ModuleConfiguration)['ParameterMapping']['C'].SqlDbType | Should -Be 'Char'
+            (Get-ModuleConfiguration)['ParameterMapping'].ContainsKey('D') | Should -BeTrue
+            (Get-ModuleConfiguration)['ParameterMapping']['D'].SqlDbType | Should -Be 'Date'
         }
     }
 }
