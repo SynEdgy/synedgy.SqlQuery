@@ -53,7 +53,7 @@ function Invoke-SqlQuery
         [string]
         $Cmd,
 
-        [Parameter()]
+        [Parameter(Mandatory)]
         [System.Data.CommandType]
         $SqlCommandType,
 
@@ -66,7 +66,7 @@ function Invoke-SqlQuery
         $CmdTimeoutSec,
 
         [Parameter()]
-        [ValidateSet('hashtable','xml','json','pscustomobject','dataset','none','table')]
+        [ValidateSet('hashtable','xml','json','pscustomobject','none','table', 'rows')]
         [string]
         $ConvertResultDataSetTo = 'table',
 

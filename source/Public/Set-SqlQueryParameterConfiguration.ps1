@@ -14,27 +14,32 @@ function Set-SqlQueryParameterConfiguration
     PS> Set-SqlQueryParameterConfiguration -ParameterConfiguration $mapping
     Sets the parameter mapping configuration for SQL queries.
     #>
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    [OutputType([void])]
-    param
-    (
+    [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
+    param (
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
-        [hashtable]
-        $ParameterConfiguration
+        [hashtable]$ParameterConfiguration
     )
 
     process
     {
-        if ($PSCmdlet.ShouldProcess('ParameterMapping', 'Set parameter mapping configuration'))
+        if (-not ($script:Configuration -is [hashtable]))
         {
-            if ($script:Configuration -isnot [hashtable])
-            {
-                $script:Configuration['ParameterMapping'] = @{}
-            }
+            $script:Configuration = @{}
+        }
 
-            if (-not $script:Configuration.ContainsKey('ParameterMapping'))
+        if (-not $script:Configuration.ContainsKey('ParameterMapping'))
+        {
+            $script:Configuration['ParameterMapping'] = @{}
+        }
+
+        foreach ($key in $ParameterConfiguration.Keys)
+        {
+            if (-not $script:Configuration['ParameterMapping'].ContainsKey($key))
             {
-                $script:Configuration['ParameterMapping'] = $ParameterConfiguration
+                if ($PSCmdlet.ShouldProcess('ParameterMapping', "Add mapping for $key"))
+                {
+                    $script:Configuration['ParameterMapping'][$key] = $ParameterConfiguration[$key]
+                }
             }
         }
     }

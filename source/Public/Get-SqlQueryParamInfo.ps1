@@ -18,7 +18,7 @@ function Get-SqlQueryParamInfo
     [OutputType([hashtable])]
     param
     (
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ValueFromPipeline = $true)]
         [string]
         [ValidateNotNullOrEmpty()]
         $ParameterName
@@ -26,19 +26,37 @@ function Get-SqlQueryParamInfo
 
     process
     {
-        if ($script:Configuration -isnot [hashtable])
+        # Support hashtable pipeline input
+        $paramName = $ParameterName
+        if ($_ -is [hashtable] -and $_.ContainsKey('ParameterName'))
         {
-            $script:Configuration =  @{}
+            $paramName = $_['ParameterName']
         }
 
-        if ($script:Configuration.ContainsKey('ParameterMapping') -and $script:Configuration['ParameterMapping'].ContainsKey($ParameterName))
+        # Throw if null, empty, or whitespace
+        if ([string]::IsNullOrWhiteSpace($paramName))
         {
-            return $script:Configuration['ParameterMapping'][$ParameterName]
+            $PSCmdlet.ThrowTerminatingError((New-Object System.Management.Automation.ErrorRecord (
+                (New-Object System.ArgumentException 'ParameterName cannot be null, empty, or whitespace.'),
+                        'ParameterArgumentValidationError',
+                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
+                        $paramName
+                    )))
+        }
+
+        if ($script:Configuration -isnot [hashtable])
+        {
+            $script:Configuration = @{}
+        }
+
+        if ($script:Configuration.ContainsKey('ParameterMapping') -and $script:Configuration['ParameterMapping'].ContainsKey($paramName))
+        {
+            return $script:Configuration['ParameterMapping'][$paramName]
         }
         elseif (-not $script:Configuration.ContainsKey('ParameterMapping') -and (Test-Path -Path (Join-Path -Path $MyInvocation.MyCommand.Module.ModuleBase -ChildPath 'config/parameter.config.psd1')))
         {
             $script:Configuration['ParameterMapping'] = Import-PowerShellDataFile -Path (Join-Path -Path $MyInvocation.MyCommand.Module.ModuleBase -ChildPath 'config/parameter.config.psd1')
-            return $script:Configuration['ParameterMapping'][$ParameterName]
+            return $script:Configuration['ParameterMapping'][$paramName]
         }
         else
         {
