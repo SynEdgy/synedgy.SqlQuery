@@ -309,13 +309,6 @@ Describe 'Invoke-SqlQuery' {
             $outputTypes.Type | Should -Contain ([System.Data.DataSet])
             $outputTypes.Type | Should -Contain ([object])
         }
-
-        It 'Should have SqlConnection parameter marked as DontShow' {
-            $command = Get-Command Invoke-SqlQuery
-            $sqlConnParam = $command.Parameters['SqlConnection']
-            $dontShowAttr = $sqlConnParam.Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] -and $_.DontShow }
-            $dontShowAttr | Should -Not -BeNullOrEmpty
-        }
     }
 
     Context 'Return Value and Output Handling' {

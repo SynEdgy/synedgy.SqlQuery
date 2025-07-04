@@ -45,7 +45,7 @@ function Invoke-SqlQuery
     [OutputType([System.Data.DataSet],[object])]
     param
     (
-        [Parameter(DontShow = $true)]
+        [Parameter()]
         [System.Data.SqlClient.SqlConnection]
         $SqlConnection = (Get-SqlQueryConnection),
 
