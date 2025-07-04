@@ -1,4 +1,4 @@
-# synedgy.sqlQuery
+# synedgy.sqlquery
 
 Quick and Simple module to execute MS/Azure SQL queries from PowerShell.
 

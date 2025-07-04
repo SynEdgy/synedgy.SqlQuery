@@ -1,11 +1,51 @@
+
 using namespace System.Data
 
 function Invoke-SqlQuery
 {
+    <#
+    .SYNOPSIS
+    Executes a SQL query or stored procedure and returns the result.
+
+    .DESCRIPTION
+    Executes a SQL command using the provided connection and parameters. Supports returning results in various formats and handling output/return values for stored procedures.
+
+    .PARAMETER SqlConnection
+    The SQL connection to use. If not provided, a new connection is created.
+
+    .PARAMETER Cmd
+    The SQL command text or stored procedure name to execute.
+
+    .PARAMETER SqlCommandType
+    The type of SQL command (Text or StoredProcedure).
+
+    .PARAMETER Parameters
+    Hashtable of parameters to pass to the SQL command.
+
+    .PARAMETER CmdTimeoutSec
+    Command timeout in seconds.
+
+    .PARAMETER ConvertResultDataSetTo
+    Format to convert the result DataSet to. Default is 'table'.
+
+    .PARAMETER KeepAlive
+    If specified, keeps the connection open after execution.
+
+    .PARAMETER ReturnValue
+    If specified, returns the stored procedure return value.
+
+    .PARAMETER OutputVariable
+    Array of hashtables describing output variables for stored procedures.
+
+    .EXAMPLE
+    PS> Invoke-SqlQuery -SqlConnection $conn -Cmd "SELECT * FROM Users" -SqlCommandType Text
+    Executes a query and returns the result as a table.
+    #>
     [CmdletBinding()]
+    [OutputType([System.Data.DataSet],[object])]
     param
     (
-        [Parameter(DontShow = $true)]
+        [Parameter()]
         [System.Data.SqlClient.SqlConnection]
         $SqlConnection = (Get-SqlQueryConnection),
 
@@ -13,7 +53,7 @@ function Invoke-SqlQuery
         [string]
         $Cmd,
 
-        [Parameter()]
+        [Parameter(Mandatory)]
         [System.Data.CommandType]
         $SqlCommandType,
 
@@ -26,7 +66,7 @@ function Invoke-SqlQuery
         $CmdTimeoutSec,
 
         [Parameter()]
-        [ValidateSet('hashtable','xml','json','pscustomobject','dataset','none','table')]
+        [ValidateSet('hashtable','xml','json','pscustomobject','none','table', 'rows')]
         [string]
         $ConvertResultDataSetTo = 'table',
 
